@@ -215,8 +215,8 @@ class Hostview(APIView):
 > OK  我累了，把 dispatch 图画了。
 > MindNode 不知道怎么贴链接。回头我整理到博客，地址放出来。
 
-# day2 关于认证、权限、限流
-# day2_note
+🎃🎃🎃🎃🎃🎃🎃🎃🎃🎃🎃🎃🎃🎃🎃
+# day2_note  关于认证、权限、限流
 
 ### 内容回顾： 
 
