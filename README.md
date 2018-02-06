@@ -20,9 +20,9 @@
 
 **之前的api写法：**
 http://www.ugfly.com/get_girls/
-				http://www.ugfly.com/add_girl/
-				http://www.ugfly.com/del_girl/1/
-				http://www.ugfly.com/update_girl/1/
+http://www.ugfly.com/add_girl/
+http://www.ugfly.com/del_girl/1/
+http://www.ugfly.com/update_girl/1/
 
 **restful api**
 http://www.ugfly.com/girls/
@@ -214,4 +214,119 @@ class Hostview(APIView):
 > 只在 hostview 认证。
 > OK  我累了，把 dispatch 图画了。
 > MindNode 不知道怎么贴链接。回头我整理到博客，地址放出来。
-> 
+
+# day2 关于认证、权限、限流
+# day2_note
+
+### 内容回顾： 
+
+第一天的调用模式，就是之后学习他的调用模式。
+
+权限
+限流，访问频率
+版本
+
+中间件和 rfw 关系？
+  - 半毛钱关系都没有
+  - 所有的rfw框架都是从 dispatch 开始的。
+
+在 dispatch 里面，执行了 inistal 里面的四个方法：
+  1. 处理版本信息
+  2. 认证
+  3. 权限
+  4. 限制访问频率。
+
+关于认证：
+  - 编写类：
+    - def auth...():
+      - None。
+      - (user,auth)
+      - raise APIException
+  - 应用
+    - 单独视图
+    - 全图
+
+## 今日内容
+
+权限一般情况下会和认证 在一起工作。
+
+1. 认证：检查用户是否存在，如果存在 request.user/request.auth
+2. 权限
+  - request.user/request.auth 返回一个 True/False。然后看它是否可以继续往下走。
+
+3. 访问频率
+### 为什么要限制访问频率？
+ - 第一点：爬虫，反爬
+ - 第二点：控制 API 访问次数
+   - 登录用户的用户名可以做标识
+   - 匿名用户可以参考 ip，但是 ip可以加代理。
+   - so...只要你想爬，早晚有一天可以爬。
+
+#### 限流的原理
+```python
+div= {
+  '1.1.1.1' : [date3,date2,date1]
+  '1.1.1.2' : [date33,date22,date11]
+    }
+```
+```python
+# 关于爬虫
+  匿名用户：你限制不了，人家可以使用代理
+  登录用户：可以通过用户名，注册手机号等手段，但是人家还是可以买多个号。
+```
+
+4. 总结
+  - 关于认证
+```python
+- 类：authenticate/authenticate_header
+- 返回值：None,(user,auth),raise 异常
+- 配置:
+  - 视图：
+    class IndexView(APIView):
+		      authentication_classes = [MyAuthentication,]
+	- 全局：
+    REST_FRAMEWORK = {
+        'UNAUTHENTICATED_USER': None,
+        'UNAUTHENTICATED_TOKEN': None,
+        "DEFAULT_AUTHENTICATION_CLASSES": [
+          # "app02.utils.MyAuthentication",
+        ],
+    }
+```
+  - 关于权限
+```python
+- 类：has_permission/has_object_permission
+- 返回值： True、False、exceptions.PermissionDenied(detail="错误信息")
+- 配置：
+  - 视图：
+    class IndexView(APIView):
+      permission_classes = [MyPermission,]
+  - 全局：
+    REST_FRAMEWORK = {
+        "DEFAULT_PERMISSION_CLASSES": [
+          # "app02.utils.MyAuthentication",
+        ],
+    }
+```
+  - 关于限流
+```python
+- 类：allow_request/wait PS: scope = "user_ff"
+- 返回值：True、False
+- 配置： 
+  - 视图： 
+    class IndexView(APIView):
+      throttle_classes=[AnonThrottle,UserThrottle,]
+      def get(self,request,*args,**kwargs):
+        self.dispatch
+        return Response('访问首页')
+  - 全局
+    REST_FRAMEWORK = {
+      "DEFAULT_THROTTLE_CLASSES":[
+
+      ],
+      'DEFAULT_THROTTLE_RATES':{
+        'anon_ff':'5/minute',
+        'user_ff':'10/minute',
+      }
+    }
+```
