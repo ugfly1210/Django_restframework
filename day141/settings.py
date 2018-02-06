@@ -130,6 +130,20 @@ REST_FRAMEWORK = {
                     'UNAUTHENTICATED_USER': None,
                     'UNAUTHENTICATED_TOKEN': None,
                     "DEFAULT_AUTHENTICATION_CLASSES": [
-                        "app01.utils.MyAuthentication",
+                        # "app01.utils.MyAuthentication",
                     ],
-					}
+                    'DEFAULT_PERMISSION_CLASSES':[
+
+                        ],
+                    'DEFAULT_THROTTLE_RATES': {
+                        'anon_ff': '5/minute',
+                        'user_ff': '10/minute',
+                    }
+				}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': 'cache',
+    }
+}

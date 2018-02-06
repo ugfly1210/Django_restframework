@@ -16,8 +16,14 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from app01 import  views
+from app02 import views as app02_view
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'^auth/', views.AuthView.as_view()),  # as_view() 就会调用 dispatch()
-    url(r'^hosts/',views.HostView.as_view()),
+    # url(r'^admin/', admin.site.urls),
+    # url(r'^auth/', views.AuthView.as_view()),  # as_view() 就会调用 dispatch()
+    # url(r'^hosts/',views.HostView.as_view()),
+    # url(r'^user/',views.UserView.as_view()),
+    # url(r'^salary/',views.SalaryView.as_view()),
+    url(r'^index/',app02_view.IndexView.as_view()),
+    url(r'^Manage_index/',app02_view.ManageView.as_view()),
 ]
+

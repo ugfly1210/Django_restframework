@@ -5,6 +5,11 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from app01 import models
+from rest_framework.views import APIView
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.authentication import BasicAuthentication
+from rest_framework.authentication import BaseAuthentication
+from rest_framework.permissions import AllowAny
 # Create your views here.
 
 # class MyAuthentication(object):
@@ -56,11 +61,57 @@ class AuthView(APIView):
         ret['token'] = token
         return Response(ret)
 
+
+
+class MyAuthentication(BaseAuthentication):
+        def authenticate(self,request):
+            token = request.query_params.get('token')
+            obj = models.UserInfo.objects.filter(token=token).first()
+            if obj:
+                return (obj.username,obj)
+            return None  # 表示我不处理，留给下一个处理。
+
+
+class MyPermission(object):
+    message = '无权访问'
+    def has_permission(self,request,view):
+        if request.user:
+            return True
+        return False
+
+class AdminPermission(object):
+    message = 'admin_无权访问'
+    def has_permission(self,request,view):
+        if request.user == 'ff':
+            return True
+        return False
+
 class HostView(APIView):
+    """匿名用户和登录用户都可以访问"""
+    authentication_classes = [MyAuthentication ,]
+    permission_classes = []    # 不验证该 url
     def get(self,request,*args,**kwargs):
         # 原来的 request 对象：django.core.handlers.wsgi.WSGIRequest
         # 现在的 request 对象：rest_framework.request.Request
-        # self.dispatch(request)
+        self.dispatch(request)
         # print(request.user)
         # print(request.token)
         return Response('刘 gay 日华是狗🐶🐶🐶🐶🐶🐶')
+
+
+class UserView(APIView):
+    """仅限登录后的用户访问"""
+    authentication_classes = [MyAuthentication]
+    permission_classes = [MyPermission]
+    def get(self,request,*args,**kwargs):
+        return Response('用户列表')
+
+
+class SalaryView(APIView):
+    """
+    只有admin用户才可以访问
+    """
+    authentication_classes = [MyAuthentication ,]
+    permission_classes = [MyPermission ,AdminPermission ,]
+    def get(self,request,*args,**kwargs):
+        return Response('查看薪资列表，仅限 admin 用户')
